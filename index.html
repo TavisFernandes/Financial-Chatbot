@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestAI Advisor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i data-feather="brain" class="w-8 h-8 text-blue-600"></i>
+                    <span class="ml-2 text-xl font-bold text-gray-900">InvestAI Advisor</span>
+                </div>
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Get Started
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                AI-Powered Investment Advisory
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Make smarter investment decisions with our AI-powered chatbot. Get real-time market analysis
+                and personalized investment recommendations across multiple asset classes.
+            </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8 mb-16">
+            <div>
+                <h2 class="text-2xl font-semibold mb-6">Chat with Our AI Advisor</h2>
+                <div id="chat-interface" class="h-[600px] bg-white rounded-xl shadow-lg flex flex-col">
+                    <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+                    <form id="chat-form" class="p-4 border-t">
+                        <div class="flex space-x-2">
+                            <input
+                                type="text"
+                                id="message-input"
+                                placeholder="Ask about investment opportunities..."
+                                class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <i data-feather="send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <img
+                    src="https://images.unsplash.com/photo-1642790551116-18e150f248e3?auto=format&fit=crop&q=80&w=800"
+                    alt="AI Analysis"
+                    class="w-full h-48 object-cover rounded-lg mb-6"
+                />
+                <h2 class="text-2xl font-semibold mb-4">Why Choose InvestAI?</h2>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i data-feather="trending-up" class="w-4 h-4 text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium">Real-Time Analysis</h3>
+                            <p class="text-gray-600">Get instant market insights and trend analysis</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i data-feather="brain" class="w-4 h-4 text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium">AI-Powered Insights</h3>
+                            <p class="text-gray-600">Advanced algorithms for smarter recommendations</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i data-feather="shopping-bag" class="w-4 h-4 text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium">Diverse Portfolio</h3>
+                            <p class="text-gray-600">Recommendations across multiple asset classes</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-semibold mb-8 text-center">Investment Categories</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {% for category in categories %}
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="{{ category.icon }}" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">{{ category.title }}</h3>
+                    <p class="text-gray-600">{{ category.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-lg p-8 mb-16">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h2 class="text-2xl font-semibold mb-4">Start Your Investment Journey</h2>
+                    <p class="text-gray-600 mb-6">
+                        Get personalized investment recommendations based on your goals and risk tolerance.
+                        Our AI advisor is available 24/7 to help you make informed decisions.
+                    </p>
+                    <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Begin Now
+                    </button>
+                </div>
+                <div>
+                    <img
+                        src="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&q=80&w=800"
+                        alt="Investment Journey"
+                        class="w-full h-64 object-cover rounded-lg"
+                    />
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i data-feather="brain" class="w-6 h-6 text-blue-400"></i>
+                        <span class="ml-2 text-lg font-bold">InvestAI Advisor</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Making intelligent investment decisions accessible to everyone through AI-powered
+                        insights and analysis.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>About Us</li>
+                        <li>How It Works</li>
+                        <li>Security</li>
+                        <li>Contact</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Legal</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Terms of Service</li>
+                        <li>Privacy Policy</li>
+                        <li>Disclaimer</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 InvestAI Advisor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Chat functionality
+        const messagesContainer = document.getElementById('messages');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+
+        function appendMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${message.is_bot ? 'justify-start' : 'justify-end'}`;
+            
+            const innerDiv = document.createElement('div');
+            innerDiv.className = `max-w-[80%] p-3 rounded-lg ${
+                message.is_bot ? 'bg-gray-100 text-gray-800' : 'bg-blue-600 text-white'
+            }`;
+            
+            if (message.is_bot) {
+                const botIcon = document.createElement('i');
+                botIcon.setAttribute('data-feather', 'bot');
+                botIcon.className = 'inline-block w-4 h-4 mr-2 mb-1';
+                innerDiv.appendChild(botIcon);
+            }
+            
+            innerDiv.appendChild(document.createTextNode(message.text));
+            messageDiv.appendChild(innerDiv);
+            messagesContainer.appendChild(messageDiv);
+            feather.replace();
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function loadMessages() {
+            const response = await fetch('/api/messages');
+            const messages = await response.json();
+            messages.forEach(appendMessage);
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            messageInput.value = '';
+            
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: message }),
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                loadMessages();
+            }
+        });
+
+        // Load initial messages
+        loadMessages();
+    </script>
+</body>
+</html>
