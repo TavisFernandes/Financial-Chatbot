@@ -12,6 +12,7 @@ import numpy as np
 real_estate_df = pd.read_csv("Real_Estate.csv")
 crypto_df = pd.read_csv("Cryptocurrencies.csv")
 green_df = pd.read_csv("Green_Investments.csv")
+bank_faq_df = pd.read_csv("BankFAQs.csv")
 def load_data():
     banking_file = "Comprehensive_Banking_Database.csv"
     stocks_file = "stocks_data.csv"
@@ -20,6 +21,12 @@ def load_data():
 
 df, stocks_df, historical_prices_df = load_data()
 model = SentenceTransformer('all-MiniLM-L6-v2')
+
+def answer_customer_query(query):
+    best_match = bank_faq_df.loc[bank_faq_df['Question'].str.contains(query, case=False, na=False)]
+    if best_match.empty:
+        return "I'm sorry, I couldn't find an answer to your question."
+    return best_match.iloc[0]['Answer']
 
 def get_account_info(customer_id):
     customer = df[df['Customer ID'] == customer_id]
@@ -54,19 +61,19 @@ def get_financial_insights(customer_id):
     transactions = df[df['Customer ID'] == customer_id][['Transaction Type', 'Transaction Amount']]
     total_spent = transactions[transactions['Transaction Type'] == 'Withdrawal']['Transaction Amount'].sum()
     total_deposited = transactions[transactions['Transaction Type'] == 'Deposit']['Transaction Amount'].sum()
-    
+
     insights = f"Financial Insights for Customer {customer_id}:\n"
     insights += f"Your current balance is ${balance:.2f}.\n"
     insights += f"Total deposited: ${total_deposited:.2f}.\n"
     insights += f"Total spent: ${total_spent:.2f}.\n"
-    
+
     if total_spent > total_deposited:
         insights += "You are spending more than you deposit. Consider adjusting your budget.\n"
     elif balance < 500:
         insights += "Your balance is low. Consider adding more funds to avoid overdrafts.\n"
     else:
         insights += "Your financial health looks stable. Keep up the good management!\n"
-    
+
     labels = ['Deposited', 'Spent', 'Balance']
     values = [total_deposited, total_spent, balance]
     plt.figure(figsize=(6, 4))
@@ -75,7 +82,7 @@ def get_financial_insights(customer_id):
     plt.ylabel("Amount in USD")
     plt.title(f"Financial Overview for Customer {customer_id}")
     plt.show()
-    
+
     return insights.strip()
 
 def get_stock_info(stock_symbol):
@@ -96,18 +103,18 @@ def predict_stock_price(stock_symbol):
     stock_data = historical_prices_df[historical_prices_df['StockID'] == stock_symbol]
     if stock_data.empty:
         return "Stock symbol not found."
-    
+
     stock_data = stock_data.sort_values('Date')
     stock_data['Days'] = np.arange(len(stock_data))
     X = stock_data[['Days']]
     y = stock_data['ClosePrice']
-    
+
     model = LinearRegression()
     model.fit(X, y)
-    
+
     future_day = np.array([[len(stock_data) + 1]])
     predicted_price = model.predict(future_day)[0]
-    
+
     return f"The predicted stock price for {stock_symbol} for the next trading day is ${predicted_price:.2f}."
 
 def get_investment_recommendations(customer_id):
@@ -123,7 +130,7 @@ def get_investment_recommendations(customer_id):
     return recommendations.strip()
 
 def retrieve_relevant_response(query):
-    questions = ["account info", "transactions", "loan status", "financial insights", "stock prediction", "investment recommendations", "stock info", "current stock price", "fraud detection", "credit score", "expense prediction", "loan approval", "feedback sentiment", "real estate trends", "cryptocurrency trends", "green investments", "real estate", "cryptocurrency"]
+    questions = ["account info", "transactions", "loan status", "financial insights", "stock prediction", "investment recommendations", "stock info", "current stock price", "fraud detection", "credit score", "expense prediction", "loan approval", "feedback sentiment", "real estate trends", "cryptocurrency trends", "green investments", "real estate", "cryptocurrency", "query"]
     embeddings = model.encode(questions, convert_to_tensor=True)
     query_embedding = model.encode(query, convert_to_tensor=True)
     scores = util.pytorch_cos_sim(query_embedding, embeddings)[0]
@@ -139,9 +146,10 @@ def detect_anomalies(customer_id):
     anomalies = transactions[transactions['Anomaly'] == -1]
     return f"Anomalous transactions detected: {len(anomalies)}" if not anomalies.empty else "No anomalies detected."
 
+#Predict credit score using KNN
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
 
-#Predict credit score using KNN
 def train_credit_score_model():
     X = df[['Account Balance', 'Transaction Amount', 'Credit Limit', 'Credit Card Balance']]
     y = df['Rewards Points']  # Proxy for credit score
@@ -262,7 +270,7 @@ def recommend_real_estate(amount, return_rate, risk_tolerance):
     predicted_returns = real_estate_model.predict(X_new)
 
     real_estate_df['Predicted Appreciation'] = predicted_returns
-    suitable_investments = real_estate_df[(real_estate_df['Predicted Appreciation'] >= return_rate) & 
+    suitable_investments = real_estate_df[(real_estate_df['Predicted Appreciation'] >= return_rate) &
                                           (real_estate_df['Price per Sq Ft ($)'] * 100 <= amount)]
 
     if suitable_investments.empty:
@@ -289,7 +297,7 @@ def recommend_crypto(amount, return_rate, risk_tolerance):
     predicted_prices = crypto_model.predict(crypto_df[['Price ($)', 'Market Cap (B)']])
 
     crypto_df['Predicted Price'] = predicted_prices
-    suitable_cryptos = crypto_df[(crypto_df['Predicted Price'] / crypto_df['Price ($)'] - 1 >= return_rate / 100) & 
+    suitable_cryptos = crypto_df[(crypto_df['Predicted Price'] / crypto_df['Price ($)'] - 1 >= return_rate / 100) &
                                  (crypto_df['Market Cap (B)'] >= risk_tolerance * 10)]
 
     if suitable_cryptos.empty:
@@ -297,6 +305,11 @@ def recommend_crypto(amount, return_rate, risk_tolerance):
 
     return suitable_cryptos[['Name', 'Price ($)', 'Predicted Price', 'Market Cap (B)']]
 
+def answer_customer_query(query):
+    best_match = bank_faq_df.loc[bank_faq_df['Question'].str.contains(query, case=False, na=False)]
+    if best_match.empty:
+        return "I'm not sure about that, but I can try to help! Can you provide more details?"
+    return best_match.iloc[0]['Answer']
 
 def chatbot():
     customer_id = int(input("Enter Customer ID: "))
@@ -344,6 +357,9 @@ def chatbot():
             print(predict_crypto_trend())
         elif "green investments" in user_input:
             print(recommend_green_investments())
+        elif "query" in user_input:
+            query = input("Enter your query: ")
+            print(answer_customer_query(query))
         elif "real estate" in user_input:
             investment = float(input("Enter investment amount: "))
             return_pct = float(input("Enter desired annual return percentage: "))
