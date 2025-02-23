@@ -137,14 +137,23 @@ def retrieve_relevant_response(query):
     best_match_idx = scores.argmax().item()
     return questions[best_match_idx]
 
-def detect_anomalies(customer_id):
-    transactions = df[df['Customer ID'] == customer_id][['Transaction Amount']]
-    if transactions.empty:
-        return "No transaction data found."
-    clf = IsolationForest(contamination=0.05)
-    transactions['Anomaly'] = clf.fit_predict(transactions[['Transaction Amount']])
-    anomalies = transactions[transactions['Anomaly'] == -1]
-    return f"Anomalous transactions detected: {len(anomalies)}" if not anomalies.empty else "No anomalies detected."
+# K-Means for Fraud Detection
+from sklearn.cluster import KMeans
+def train_kmeans_fraud_model():
+    if 'Transaction Amount' not in df.columns or 'Anomaly' not in df.columns:
+        return None
+    df_clean = df.dropna(subset=['Transaction Amount', 'Anomaly'])
+    X = df_clean[['Transaction Amount']]
+    model = KMeans(n_clusters=2, random_state=42)
+    model.fit(X)
+    return model
+kmeans_fraud_model = train_kmeans_fraud_model()
+
+def detect_anomalies(transaction_amount):
+    if kmeans_fraud_model is None:
+        return "Fraud detection model unavailable."
+    cluster = kmeans_fraud_model.predict([[transaction_amount]])[0]
+    return "Anomalous transaction detected." if cluster == -1 else "No anomalies detected."
 
 #Predict credit score using KNN
 from sklearn.model_selection import train_test_split
@@ -316,7 +325,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-# Train tax compliance model with available data
 def train_tax_compliance_model():
     if 'Account Balance' not in df.columns or 'Transaction Amount' not in df.columns:
         return None
@@ -341,13 +349,12 @@ def provide_tax_compliance_assistance(customer_id):
     if tax_model is None:
         return "Tax model unavailable at the moment. Please try later."
 
-    # Use Account Balance and Transaction Amount for tax estimation
     X_test = customer[['Account Balance', 'Transaction Amount']].fillna(0)  # Fill missing values with 0
     predicted_tax = tax_model.predict(X_test)[0]
 
     return f"Based on your financials, your estimated tax liability is ${predicted_tax:.2f}. Consider consulting a tax expert for tax-saving strategies."
 
-
+#Gamified customer reward using linear regression
 def train_rewards_model():
     if 'Transaction Amount' not in df.columns or 'Rewards Points' not in df.columns:
         return None
@@ -425,12 +432,12 @@ def chatbot():
             investment = float(input("Enter investment amount: "))
             return_pct = float(input("Enter desired annual return percentage: "))
             risk = float(input("Enter risk tolerance percentage: "))
-            print(recommend_real_estate_investment(investment, return_pct, risk))
+            print(recommend_real_estate(investment, return_pct, risk))
         elif "cryptocurrency" in user_input:
             investment = float(input("Enter investment amount: "))
             return_pct = float(input("Enter desired annual return percentage: "))
             risk = float(input("Enter risk tolerance percentage: "))
-            print(recommend_crypto_investment(investment, return_pct, risk))
+            print(recommend_crypto(investment, return_pct, risk))
         elif "tax compliance" in user_input:
             print(provide_tax_compliance_assistance(customer_id))
         elif "rewards" in user_input:
