@@ -130,7 +130,7 @@ def get_investment_recommendations(customer_id):
     return recommendations.strip()
 
 def retrieve_relevant_response(query):
-    questions = ["account info", "transactions", "loan status", "financial insights", "stock prediction", "investment recommendations", "stock info", "current stock price", "fraud detection", "credit score", "expense prediction", "loan approval", "feedback sentiment", "real estate trends", "cryptocurrency trends", "green investments", "real estate", "cryptocurrency", "query"]
+    questions = ["account info", "transactions", "loan status", "financial insights", "stock prediction", "investment recommendations", "stock info", "current stock price", "fraud detection", "credit score", "expense prediction", "loan approval", "feedback sentiment", "real estate trends", "cryptocurrency trends", "green investments", "real estate", "cryptocurrency", "query", "tax compliance", "rewards"]
     embeddings = model.encode(questions, convert_to_tensor=True)
     query_embedding = model.encode(query, convert_to_tensor=True)
     scores = util.pytorch_cos_sim(query_embedding, embeddings)[0]
@@ -311,6 +311,67 @@ def answer_customer_query(query):
         return "I'm not sure about that, but I can try to help! Can you provide more details?"
     return best_match.iloc[0]['Answer']
 
+#Tax compliance and gamified customer reward using random forest and linear regression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+# Train tax compliance model with available data
+def train_tax_compliance_model():
+    if 'Account Balance' not in df.columns or 'Transaction Amount' not in df.columns:
+        return None
+
+    df_clean = df.dropna(subset=['Account Balance', 'Transaction Amount'])
+    
+    X = df_clean[['Account Balance', 'Transaction Amount']]
+    y = df_clean['Account Balance'] * 0.15  # Assuming 15% estimated tax liability
+
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X, y)
+    return model
+
+tax_model = train_tax_compliance_model()
+
+def provide_tax_compliance_assistance(customer_id):
+    customer = df[df['Customer ID'] == customer_id]
+    
+    if customer.empty:
+        return "Customer ID not found. Please check and try again."
+    
+    if tax_model is None:
+        return "Tax model unavailable at the moment. Please try later."
+
+    # Use Account Balance and Transaction Amount for tax estimation
+    X_test = customer[['Account Balance', 'Transaction Amount']].fillna(0)  # Fill missing values with 0
+    predicted_tax = tax_model.predict(X_test)[0]
+
+    return f"Based on your financials, your estimated tax liability is ${predicted_tax:.2f}. Consider consulting a tax expert for tax-saving strategies."
+
+
+def train_rewards_model():
+    if 'Transaction Amount' not in df.columns or 'Rewards Points' not in df.columns:
+        return None
+
+    df_clean = df.dropna(subset=['Transaction Amount', 'Rewards Points'])
+    X = df_clean[['Transaction Amount']]
+    y = df_clean['Rewards Points']
+
+    model = LinearRegression()
+    model.fit(X, y)
+    return model
+
+rewards_model = train_rewards_model()
+
+def reward_customer_activity(customer_id):
+    customer = df[df['Customer ID'] == customer_id]
+    if customer.empty or rewards_model is None:
+        return "Customer not found or rewards model unavailable."
+
+    total_spent = customer['Transaction Amount'].sum()
+    predicted_rewards = rewards_model.predict([[total_spent]])[0]
+
+    return f"Based on your spending habits, you may earn approximately {predicted_rewards:.0f} reward points. Keep transacting to maximize rewards!"
+
 def chatbot():
     customer_id = int(input("Enter Customer ID: "))
     if df[df['Customer ID'] == customer_id].empty:
@@ -370,6 +431,10 @@ def chatbot():
             return_pct = float(input("Enter desired annual return percentage: "))
             risk = float(input("Enter risk tolerance percentage: "))
             print(recommend_crypto_investment(investment, return_pct, risk))
+        elif "tax compliance" in user_input:
+            print(provide_tax_compliance_assistance(customer_id))
+        elif "rewards" in user_input:
+            print(reward_customer_activity(customer_id))
         else:
             print("Feature not yet implemented.")
 
